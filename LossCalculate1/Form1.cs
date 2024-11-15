@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Bond;
 using NHibernate.Mapping;
+using static System.Collections.Specialized.BitVector32;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace LossCalculate1
@@ -23,18 +24,22 @@ namespace LossCalculate1
     {
         public float f32_ForCalc; //Power for calculate
         public float f32_Max; //Max or Rated
+
+        public float f32_onePV; // Po_all / N_Pv
     }
 
     public struct InputCircuitSpecifications
     {
         public VOLTAGE Vpv;       // PV Voltage
         public VOLTAGE V_Inv_Bus; // Inverter Bus Voltage
-        public POWER Po;          // Power
+        public POWER Po;          // Power out
+        public POWER Pin;         // Power in
         public int i16_N_PV;           //Number of PV or BAT Parallel Input
-        public float f32_MaxInCur;       //Maximum Input Current of Each PV Input
-        public float f32_fs;             //Switching Frequency
-        public float f32_Tshift;         //Multiple PV Input Phase Shift Time
-        public float f32_ExpEffi;        //Expected Efficiency
+        public float f32_MaxInCur;     //Maximum Input Current of Each PV Input
+        public float f32_fs;           //Switching Frequency
+        public float f32_Ts;           // 1 / fs
+        public float f32_Tshift;       //Multiple PV Input Phase Shift Time
+        public float f32_ExpEff;      //Expected Efficiency
         public int i16_SR;             //Synchronous rectification mode [1: Diode mode; 2: SR mode ]
     }
     public partial class Form1 : Form
@@ -99,8 +104,14 @@ namespace LossCalculate1
             Section1.f32_MaxInCur = GetFloatValue(IinMax.Text);
             Section1.f32_fs = GetFloatValue(fs.Text);
 
-            Section1.f32_ExpEffi = GetFloatValue(Expected_Effi.Text);
+            Section1.f32_ExpEff = GetFloatValue(Expected_Effi.Text);
             Section1.i16_SR = GetIntValue(SRMode.Text);
+
+            Section1.Po.f32_onePV = Section1.Po.f32_ForCalc / Section1.i16_N_PV;
+            Section1.f32_Ts = 1 / Section1.f32_fs;
+            Section1.Pin.f32_onePV = Section1.Po.f32_ForCalc / (Section1.i16_N_PV * Section1.f32_ExpEff); //Seems redundant
+
+
 
             float sum = cPi * Section1.Vpv.f32_Max;
 

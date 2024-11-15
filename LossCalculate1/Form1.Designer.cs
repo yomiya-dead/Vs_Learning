@@ -317,9 +317,9 @@
             this.label13.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label13.Location = new System.Drawing.Point(366, 455);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(117, 36);
+            this.label13.Size = new System.Drawing.Size(110, 36);
             this.label13.TabIndex = 2;
-            this.label13.Text = "Exp_Effi";
+            this.label13.Text = "Exp_Eff";
             this.label13.Click += new System.EventHandler(this.label1_Click);
             // 
             // label14
