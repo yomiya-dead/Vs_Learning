@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.button1 = new System.Windows.Forms.Button();
-            this.Vpv = new System.Windows.Forms.TextBox();
+            this.VpvNorm = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.Vpvmax = new System.Windows.Forms.TextBox();
             this.Vpvmin = new System.Windows.Forms.TextBox();
@@ -71,14 +71,14 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // Vpv
+            // VpvNorm
             // 
-            this.Vpv.Location = new System.Drawing.Point(35, 91);
-            this.Vpv.Multiline = true;
-            this.Vpv.Name = "Vpv";
-            this.Vpv.Size = new System.Drawing.Size(115, 61);
-            this.Vpv.TabIndex = 1;
-            this.Vpv.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.VpvNorm.Location = new System.Drawing.Point(35, 91);
+            this.VpvNorm.Multiline = true;
+            this.VpvNorm.Name = "VpvNorm";
+            this.VpvNorm.Size = new System.Drawing.Size(115, 61);
+            this.VpvNorm.TabIndex = 1;
+            this.VpvNorm.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // label1
             // 
@@ -407,7 +407,7 @@
             this.Controls.Add(this.Vpvmin);
             this.Controls.Add(this.VBUSMin);
             this.Controls.Add(this.Vpvmax);
-            this.Controls.Add(this.Vpv);
+            this.Controls.Add(this.VpvNorm);
             this.Controls.Add(this.button1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -420,7 +420,7 @@
         #endregion
 
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.TextBox Vpv;
+        private System.Windows.Forms.TextBox VpvNorm;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox Vpvmax;
         private System.Windows.Forms.TextBox Vpvmin;
