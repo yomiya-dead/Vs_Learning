@@ -115,7 +115,7 @@ namespace LossCalculate1
 
 
 
-            float sum = 2 * cPi * S1.Vpv.f32_Max;
+            float sum = 3 * cPi * S1.Vpv.f32_Max;
 
   
             Results.Text = sum.ToString();
