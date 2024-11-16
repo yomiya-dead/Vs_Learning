@@ -46,7 +46,7 @@ namespace LossCalculate1
     }
     public partial class Form1 : Form
     {
-        InputCircuitSpecifications Section1; //Data in section1
+        InputCircuitSpecifications S1; //Data in Section1
         public static float COSINE(float a) => (float)Math.Cos(a);
         public static float SINE(float a) => (float)Math.Sin(a);
         public static float SQRT(float a) => (float)Math.Sqrt(a);
@@ -91,31 +91,31 @@ namespace LossCalculate1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Section1.Vpv.f32_Normal = GetFloatValue(VpvNorm.Text);
-            Section1.Vpv.f32_Max = GetFloatValue(Vpvmax.Text);
-            Section1.Vpv.f32_Min = GetFloatValue(Vpvmin.Text);
+            S1.Vpv.f32_Normal = GetFloatValue(VpvNorm.Text);
+            S1.Vpv.f32_Max = GetFloatValue(Vpvmax.Text);
+            S1.Vpv.f32_Min = GetFloatValue(Vpvmin.Text);
 
-            Section1.V_Inv_Bus.f32_Normal = GetFloatValue(VBUSNor.Text);
-            Section1.V_Inv_Bus.f32_Max = GetFloatValue(VBUSMax.Text);
-            Section1.V_Inv_Bus.f32_Min = GetFloatValue(VBUSMin.Text);
+            S1.V_Inv_Bus.f32_Normal = GetFloatValue(VBUSNor.Text);
+            S1.V_Inv_Bus.f32_Max = GetFloatValue(VBUSMax.Text);
+            S1.V_Inv_Bus.f32_Min = GetFloatValue(VBUSMin.Text);
 
-            Section1.Po.f32_Max = GetFloatValue(RatedPwr.Text);
-            Section1.Po.f32_ForCalc = GetFloatValue(CalPwr.Text);
+            S1.Po.f32_Max = GetFloatValue(RatedPwr.Text);
+            S1.Po.f32_ForCalc = GetFloatValue(CalPwr.Text);
 
-            Section1.i16_N_PV = GetIntValue(N_Pv.Text);
-            Section1.f32_MaxInCur = GetFloatValue(IinMax.Text);
-            Section1.f32_fs = GetFloatValue(fs.Text);
+            S1.i16_N_PV = GetIntValue(N_Pv.Text);
+            S1.f32_MaxInCur = GetFloatValue(IinMax.Text);
+            S1.f32_fs = GetFloatValue(fs.Text);
 
-            Section1.f32_ExpEff = GetFloatValue(Expected_Effi.Text);
-            Section1.i16_SR = GetIntValue(SRMode.Text);
+            S1.f32_ExpEff = GetFloatValue(Expected_Effi.Text);
+            S1.i16_SR = GetIntValue(SRMode.Text);
 
-            Section1.Po.f32_onePV = Section1.Po.f32_ForCalc / Section1.i16_N_PV;
-            Section1.f32_Ts = 1 / Section1.f32_fs;
-            Section1.Pin.f32_onePV = Section1.Po.f32_ForCalc / (Section1.i16_N_PV * Section1.f32_ExpEff); //Seems redundant
+            S1.Po.f32_onePV = S1.Po.f32_ForCalc / S1.i16_N_PV;
+            S1.f32_Ts = 1 / S1.f32_fs;
+            S1.Pin.f32_onePV = S1.Po.f32_ForCalc / (S1.i16_N_PV * S1.f32_ExpEff); //Seems redundant
 
 
 
-            float sum = 2 * cPi * Section1.Vpv.f32_Max;
+            float sum = 2 * cPi * S1.Vpv.f32_Max;
 
   
             Results.Text = sum.ToString();
