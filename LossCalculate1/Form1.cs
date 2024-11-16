@@ -25,21 +25,23 @@ namespace LossCalculate1
         public float f32_ForCalc; //Power for calculate
         public float f32_Max; //Max or Rated
 
-        public float f32_onePV; // Po_all / N_Pv
+        public float f32_onePV; // = Po_all / N_Pv
     }
 
     public struct InputCircuitSpecifications
     {
-        public VOLTAGE Vpv;       // PV Voltage
-        public VOLTAGE V_Inv_Bus; // Inverter Bus Voltage
-        public POWER Po;          // Power out
-        public POWER Pin;         // Power in
-        public int i16_N_PV;           //Number of PV or BAT Parallel Input
+        public VOLTAGE Vpv;         // PV Voltage
+        public VOLTAGE V_Inv_Bus;   // Inverter Bus Voltage
+        public POWER Po;            // Power out
+        public POWER Pin;           // Power in
+
         public float f32_MaxInCur;     //Maximum Input Current of Each PV Input
         public float f32_fs;           //Switching Frequency
         public float f32_Ts;           // 1 / fs
         public float f32_Tshift;       //Multiple PV Input Phase Shift Time
-        public float f32_ExpEff;      //Expected Efficiency
+        public float f32_ExpEff;       //Expected Efficiency
+        
+        public int i16_N_PV;           //Number of PV or BAT Parallel Input
         public int i16_SR;             //Synchronous rectification mode [1: Diode mode; 2: SR mode ]
     }
     public partial class Form1 : Form
