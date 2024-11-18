@@ -30,6 +30,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.Calculate = new System.Windows.Forms.Button();
             this.VpvNorm = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -112,6 +115,10 @@
             this.label41 = new System.Windows.Forms.Label();
             this.MaxDCREMI_N = new System.Windows.Forms.TextBox();
             this.label42 = new System.Windows.Forms.Label();
+            this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             this.SuspendLayout();
             // 
             // Calculate
@@ -418,10 +425,10 @@
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label16.Location = new System.Drawing.Point(1984, 44);
+            this.label16.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label16.Location = new System.Drawing.Point(1978, 45);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(109, 36);
+            this.label16.Size = new System.Drawing.Size(119, 37);
             this.label16.TabIndex = 2;
             this.label16.Text = "Results";
             this.label16.Click += new System.EventHandler(this.label1_Click);
@@ -937,11 +944,51 @@
             this.label42.Text = "MaxDCREMI_N";
             this.label42.Click += new System.EventHandler(this.label1_Click);
             // 
+            // chart1
+            // 
+            chartArea3.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea3);
+            legend3.Name = "Legend1";
+            this.chart1.Legends.Add(legend3);
+            this.chart1.Location = new System.Drawing.Point(35, 712);
+            this.chart1.Name = "chart1";
+            series3.ChartArea = "ChartArea1";
+            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series3.Legend = "Legend1";
+            series3.Name = "Series1";
+            this.chart1.Series.Add(series3);
+            this.chart1.Size = new System.Drawing.Size(932, 476);
+            this.chart1.TabIndex = 3;
+            this.chart1.Text = "chart1";
+            this.chart1.Click += new System.EventHandler(this.chart1_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(2068, 504);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(8, 8);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(1912, 293);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(256, 71);
+            this.button2.TabIndex = 5;
+            this.button2.Text = "Set Default Value";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(2259, 1075);
+            this.ClientSize = new System.Drawing.Size(2259, 1257);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.chart1);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label16);
@@ -1027,6 +1074,7 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1116,6 +1164,9 @@
         private System.Windows.Forms.Label label41;
         private System.Windows.Forms.TextBox MaxDCREMI_N;
         private System.Windows.Forms.Label label42;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
     }
 }
 
