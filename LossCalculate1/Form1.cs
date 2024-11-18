@@ -27,8 +27,7 @@ namespace LossCalculate1
 
         public float f32_onePV; // = Po_all / N_Pv
     }
-
-    public struct InputCircuitSpecifications
+    public struct Input_Circuit_Specifications
     {
         public VOLTAGE Vpv;         // PV Voltage
         public VOLTAGE V_Inv_Bus;   // Inverter Bus Voltage
@@ -40,13 +39,63 @@ namespace LossCalculate1
         public float f32_Ts;           // 1 / fs
         public float f32_Tshift;       //Multiple PV Input Phase Shift Time
         public float f32_ExpEff;       //Expected Efficiency
-        
+
         public int i16_N_PV;           //Number of PV or BAT Parallel Input
         public int i16_SR;             //Synchronous rectification mode [1: Diode mode; 2: SR mode ]
     }
+    public struct COEFFICIENT
+    {
+        public float f32_a0;
+        public float f32_a1;
+        public float f32_b0;
+        public float f32_b1;
+        public float f32_c0;
+        public float f32_c1;
+        public float f32_d1;
+    }
+    public struct INDUCTOR
+    {
+        public float f32_L_NoBias;        // Inductor L Without Bias
+        public float f32_Factor;          // Inductor Factor (nH)
+        public float f32_Turns;           // Inductor Turns
+        public float f32_MagLen;          // Magnetic Path Length
+        public float f32_CoreArea;        // Core Cross-section Area
+        public float f32_CoreVol;         // Core Volume
+        public float f32_MaxDCR_Pwr;      // Max DCR Power
+        public float f32_MaxDCR_EMI_Pos;  // Max DCR EMI Positive
+        public float f32_MaxDCR_EMI_Neg;  // Max DCR EMI Negative
+        public float f32_AC_DCR_Coeff;    // AC DCR Coefficient
+        public float f32_MaxTemp_Pwr;     // Max Temp Power
+        public float f32_MaxTemp_EMI;     // Max Temp EMI
+
+        public COEFFICIENT SteinCoeff;    // Steinmetz Coefficient
+        public COEFFICIENT LinAttCoeff;   // Linear Attenuation Coefficient
+
+        //below value is computed automatically
+        public float f32_Lpv0;            // Turns of Power Inductor (H)
+    }
+    public struct CAPACITOR
+    {
+        public float f32_C_Single;        // Single Capacitance (uF)
+        public float f32_TanSigma;        // Tan Sigma @ 120Hz
+        public float f32_C_In;            // Input Capacitance
+        public float f32_ESR_In;          // Input ESR
+        public int i16_ParCount;          // Parallel Count
+        public int i16_SerCount;          // Series Count
+
+        //below value is computed automatically
+        public float f32_C_Equiv;         // Equivalent Capacitance (F)
+        public float f32_ESR_Equiv;       // Equivalent ESR (ohm)
+    }
+    public struct Input_Inductor_Capacitor_EMI
+    {
+        public INDUCTOR L;
+        public CAPACITOR C;
+    }
     public partial class Form1 : Form
     {
-        InputCircuitSpecifications S1; //Data in Section1
+        Input_Circuit_Specifications S1; //Data in Section1
+        Input_Inductor_Capacitor_EMI S2; //Data in Section2
         public static float COSINE(float a) => (float)Math.Cos(a);
         public static float SINE(float a) => (float)Math.Sin(a);
         public static float SQRT(float a) => (float)Math.Sqrt(a);
@@ -91,6 +140,17 @@ namespace LossCalculate1
 
         private void button1_Click(object sender, EventArgs e)
         {
+            InitializeInputSpecifications();
+            InitializeInductorCapacitorEMI();
+
+            float sum = S2.C.f32_ESR_Equiv;
+
+            Results.Text = sum.ToString();
+        }
+
+        private void InitializeInputSpecifications()
+        {
+            //Section1
             S1.Vpv.f32_Normal = GetFloatValue(VpvNorm.Text);
             S1.Vpv.f32_Max = GetFloatValue(Vpvmax.Text);
             S1.Vpv.f32_Min = GetFloatValue(Vpvmin.Text);
@@ -109,36 +169,72 @@ namespace LossCalculate1
             S1.f32_ExpEff = GetFloatValue(Expected_Effi.Text);
             S1.i16_SR = GetIntValue(SRMode.Text);
 
+            //below value is computed automatically
             S1.Po.f32_onePV = S1.Po.f32_ForCalc / S1.i16_N_PV;
             S1.f32_Ts = 1 / S1.f32_fs;
             S1.Pin.f32_onePV = S1.Po.f32_ForCalc / (S1.i16_N_PV * S1.f32_ExpEff); //Seems redundant
-
-
-
-            float sum = 3 * cPi * S1.Vpv.f32_Max;
-
-  
-            Results.Text = sum.ToString();
         }
 
-        // 辅助方法：如果文本框为空或无法转换为浮点数，则返回0
+        private void InitializeInductorCapacitorEMI()
+        {
+            //Section2
+            S2.L.f32_L_NoBias = GetFloatValue(L_NoBias.Text);
+            S2.L.f32_Factor = GetFloatValue(Factor.Text);
+            S2.L.f32_Turns = GetFloatValue(Turns.Text);
+            S2.L.f32_MagLen = GetFloatValue(MagLen.Text);
+            S2.L.f32_CoreArea = GetFloatValue(CoreArea.Text);
+            S2.L.f32_CoreVol = GetFloatValue(CoreVol.Text);
+
+            S2.L.SteinCoeff.f32_a0 = GetFloatValue(SteinCoeff_a0.Text);
+            S2.L.SteinCoeff.f32_b0 = GetFloatValue(SteinCoeff_b0.Text);
+            S2.L.SteinCoeff.f32_c0 = GetFloatValue(SteinCoeff_c0.Text);
+
+            S2.L.LinAttCoeff.f32_a1 = GetFloatValue(AttCoeff_a1.Text);
+            S2.L.LinAttCoeff.f32_b1 = GetFloatValue(AttCoeff_b1.Text);
+            S2.L.LinAttCoeff.f32_c1 = GetFloatValue(AttCoeff_c1.Text);
+            S2.L.LinAttCoeff.f32_d1 = GetFloatValue(AttCoeff_d1.Text);
+
+            S2.L.f32_MaxDCR_Pwr = GetFloatValue(MaxDCRPwr.Text);
+            S2.L.f32_MaxDCR_EMI_Neg = GetFloatValue(MaxDCREMI_N.Text);
+            S2.L.f32_MaxDCR_EMI_Pos = GetFloatValue(MaxDCREMI_P.Text);
+            S2.L.f32_AC_DCR_Coeff = GetFloatValue(AC_Coeffi.Text);
+            S2.L.f32_MaxTemp_Pwr = GetFloatValue(TempPwr.Text);
+            S2.L.f32_MaxTemp_EMI = GetFloatValue(TempEMI.Text);
+
+            S2.C.f32_C_Single = GetFloatValue(C_Single.Text);
+            S2.C.i16_ParCount = GetIntValue(ParCount.Text);
+            S2.C.i16_SerCount = GetIntValue(SerCount.Text);
+            S2.C.f32_TanSigma = GetFloatValue(TanSigma.Text);
+            S2.C.f32_C_In = GetFloatValue(Cin.Text);
+            S2.C.f32_ESR_In = GetFloatValue(ESR_Cin.Text);
+
+            //below value is computed automatically
+            S2.L.f32_Lpv0 = (S2.L.f32_Factor * S2.L.f32_Turns * S2.L.f32_Turns) / 1000000000f;
+            S2.C.f32_C_Equiv = (S2.C.f32_C_Single * (float)S2.C.i16_ParCount) / ((float)S2.C.i16_SerCount) / 1000000f;
+            S2.C.f32_ESR_Equiv = (1 / (2.0f * cPi * 120f * S2.C.f32_C_Equiv)) * S2.C.f32_TanSigma;
+        }
+
+        public void WaveformCalculation()
+        {
+
+        }
+
         private float GetFloatValue(string text)
         {
             float result = 0f;
             if (!string.IsNullOrEmpty(text) && !float.TryParse(text, out result))
             {
-                result = 0f; // 如果转换失败，返回0
+                result = 0f; // 如果转换失败，返0
             }
             return result;
         }
 
-        // 辅助方法：如果文本框为空或无法转换为整数，则返回0
         private int GetIntValue(string text)
         {
             int result = 0;
             if (!string.IsNullOrEmpty(text) && !int.TryParse(text, out result))
             {
-                result = 0; // 如果转换失败，返回0
+                result = 1; // 如果转换失败，返1
             }
             return result;
         }
