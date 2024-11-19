@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -641,13 +642,14 @@ namespace LossCalculate1
         }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            string currentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
             switch (comboBox1.SelectedIndex)
             {
                 case 0:
-                    pictureBox2.Image = Image.FromFile("D:\\Self_Soft\\VS2022\\Workplace\\LossCalculate1\\picture\\pic1.jpg"); // 修改为实际图片的路径
+                    pictureBox2.Image = Image.FromFile(System.IO.Path.Combine(currentDirectory, "..\\..\\picture\\pic1.jpg"));
                     break;
                 case 1:
-                    pictureBox2.Image = Image.FromFile("D:\\Self_Soft\\VS2022\\Workplace\\LossCalculate1\\picture\\pic2.png");
+                    pictureBox2.Image = Image.FromFile(System.IO.Path.Combine(currentDirectory, "..\\..\\picture\\pic2.png"));
                     break;
             }
             DrawChart(comboBox1.SelectedIndex);
