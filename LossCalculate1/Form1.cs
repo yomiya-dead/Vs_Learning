@@ -14,6 +14,7 @@ using MathNet.Numerics.Integration;
 using NHibernate.Mapping;
 using static System.Collections.Specialized.BitVector32;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using LossCalculate1;
 
 
 namespace LossCalculate1
@@ -153,6 +154,8 @@ namespace LossCalculate1
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            AssignDefaultValues();
+            DisplayAssignedValues();
             ComboBox_Load();
         }
         private void ComboBox_Load()
@@ -162,6 +165,11 @@ namespace LossCalculate1
             comboBox1.Items.Add("IoDC_onePV");
             comboBox1.Items.Add("Po_max_Limitation");
             comboBox1.Items.Add("Lpv_ILX");
+            comboBox1.Items.Add("D_Iin");
+            comboBox1.Items.Add("I_in_L");
+            comboBox1.Items.Add("I_in_H");
+            comboBox1.Items.Add("dl1_in");
+            comboBox1.Items.Add("L_Pv");
             comboBox1.SelectedIndex = 0;
             comboBox1.SelectedIndexChanged += ComboBox1_SelectedIndexChanged;
         }
@@ -177,7 +185,7 @@ namespace LossCalculate1
             DrawChart(comboBox1.SelectedIndex);
 
             //float sum = Cal_H_Field(S1.Vpv.f32_Min, Cal_Vo_BST(S1.Vpv.f32_Min), 10000, S2.L.f32_Turns);
-            float sum = Cal_Dp_boost(S1.Vpv.f32_Normal, Cal_Vo_BST(S1.Vpv.f32_Normal), 0.01f * S1.Po.f32_All, S2.L.f32_Turns);
+            float sum = Cal_I_avg(S1.Vpv.f32_Normal, Cal_Vo_BST(S1.Vpv.f32_Normal), S1.Po.f32_All, S2.L.f32_Turns);
             Results.Text = sum.ToString();
         }
         private void button2_Click(object sender, EventArgs e)
@@ -498,14 +506,12 @@ namespace LossCalculate1
         private float Cal_L_Pv(float t, float V_in, float V_out, float P_out, float N_L)
         {
             float I_inDC_onePV = Cal_InDC_onePV(V_in, V_out, P_out);
-            float delta_Iin = Cal_Delta_Iin(V_in, V_out, P_out, N_L);
             float I_in_CRM = Cal_I_CRM(V_in, V_out, (int)N_L);
             float I_Lin_L = Cal_IinL(V_in, V_out, P_out, N_L);
             float I_Lin_H = Cal_IinH(V_in, V_out, P_out, N_L);
             float d_I1in = Cal_dI1_in(V_in, V_out, P_out, N_L);
             float d_I2in = Cal_dI2_in(V_in, V_out, P_out, N_L);
 
-            int rectifierMode = S1.i16_SR;
             float D_boost = Cal_D_boost(V_in, V_out, P_out, N_L);
             float Dp_boost = Cal_Dp_boost(V_in, V_out, P_out, N_L);
 
@@ -519,7 +525,7 @@ namespace LossCalculate1
                     }
                     else
                     {
-                        return I_Lin_H + d_I2in * ((t - D_boost / S1.f32_Ts) % S1.f32_Ts);
+                        return I_Lin_H + d_I2in * ((t - D_boost / S1.f32_fs) % S1.f32_Ts);
                     }
                 }
                 else
@@ -530,7 +536,7 @@ namespace LossCalculate1
                     }
                     else if ((D_boost / S1.f32_fs) <= (t % S1.f32_Ts) && (t % S1.f32_Ts) < (D_boost / S1.f32_fs + Dp_boost / S1.f32_fs))
                     {
-                        return I_Lin_H + d_I2in * ((t - D_boost / S1.f32_Ts) % S1.f32_Ts);
+                        return I_Lin_H + d_I2in * ((t - D_boost / S1.f32_fs) % S1.f32_Ts);
                     }
                     else
                     {
@@ -546,7 +552,7 @@ namespace LossCalculate1
         private float Cal_I_rms(float V_in, float V_out, float P_out, float N_L)
         {
             float Inte_i_L_Pv = (float)GaussLegendreRule.Integrate(
-                    t => (double)Cal_L_Pv((float)t, V_in,V_out, P_out, N_L),  // 被积函数
+                    t => (double)Cal_L_Pv((float)t, V_in,V_out, P_out, N_L) * Cal_L_Pv((float)t, V_in, V_out, P_out, N_L),  // 被积函数
                     0,                 // 积分下限
                     S1.f32_Ts,           // 积分上限
                     32                 // 高斯-勒让德积分的节点数（越大精度越高）
@@ -563,6 +569,136 @@ namespace LossCalculate1
                     );
             return S1.f32_fs * Inte_i_L_Pv;
         }
+        private float Cal_I_MosBst(float t, float V_in, float V_out, float P_out, float N_L)
+        {
+            float iLpv = Cal_L_Pv(t, V_in, V_out, P_out, N_L);
+            float D_boost = Cal_D_boost(V_in, V_out, P_out, N_L);
+
+            if (V_in < V_out)
+            {
+                if ((t % S1.f32_Ts) < (D_boost / S1.f32_fs))
+                {
+                    return iLpv;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        private float Cal_Body_Conduction_FlagMOS(float t, float V_in, float V_out, float P_out, float N_L)
+        {
+            float iMosBst = Cal_I_MosBst(t, V_in, V_out, P_out, N_L);
+
+            if ((iMosBst < 0) && S1.i16_SR == 2)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        private float Cal_I_DiodeBst(float t, float V_in, float V_out, float P_out, float N_L)
+        {
+            float iLpv = Cal_L_Pv(t, V_in, V_out, P_out, N_L);
+            float I_inDC_onePV = Cal_InDC_onePV(V_in, V_out, P_out);
+            float D_boost = Cal_D_boost(V_in, V_out, P_out, N_L);
+
+            if (V_in < V_out)
+            {
+                if ((D_boost / S1.f32_fs) < (t % S1.f32_Ts))
+                {
+                    return iLpv;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                return I_inDC_onePV;
+            }
+        }
+        private float Cal_0CrossTime(float V_in, float V_out, float P_out, float N_L)
+        {
+            float I_Lin_L = Cal_IinL(V_in, V_out, P_out, N_L);
+            float d_I1in = Cal_dI1_in(V_in, V_out, P_out, N_L);
+
+
+            if ((I_Lin_L < 0) && S1.i16_SR == 2)
+            {
+                return -I_Lin_L / d_I1in;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        private float Cal_Iavg_BstMosBodyDiode(float V_in, float V_out, float P_out, float N_L)
+        {
+            float Zero_CrossTime = Cal_0CrossTime(V_in, V_out, P_out, N_L);
+            if ((Zero_CrossTime != 0) && S1.i16_SR == 2)
+            {
+                float Inte_iMosBst = (float)GaussLegendreRule.Integrate(
+                t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+                0,                 // 积分下限
+                Zero_CrossTime,           // 积分上限
+                32                 // 高斯-勒让德积分的节点数（越大精度越高）
+                );
+                return S1.f32_fs * Inte_iMosBst;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        private float Cal_Irms_BstMos(float V_in, float V_out, float P_out, float N_L)
+        {
+            float Zero_CrossTime = Cal_0CrossTime(V_in, V_out, P_out, N_L);
+            float D_boost = Cal_D_boost(V_in, V_out, P_out, N_L);
+
+            if (S1.i16_SR == 1)
+            {
+                float Inte_iMosBst_1 = (float)GaussLegendreRule.Integrate(
+                t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L) * Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+                0,                 // 积分下限
+                S1.f32_Ts,           // 积分上限
+                32                 // 高斯-勒让德积分的节点数（越大精度越高）
+                );
+                return SQRT(S1.f32_fs * Inte_iMosBst_1);
+            }
+            else if (S1.i16_SR == 2)
+            {
+                float Inte_iMosBst_2 = (float)GaussLegendreRule.Integrate(
+                t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L) * Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+                Zero_CrossTime,             // 积分下限
+                D_boost * S1.f32_Ts,        // 积分上限
+                32                          // 高斯-勒让德积分的节点数（越大精度越高）
+                );
+                return SQRT(S1.f32_fs * Inte_iMosBst_2);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        private float Cal_Iavg_BstMos(float V_in, float V_out, float P_out, float N_L)
+        {
+            float Inte_iMosBst = (float)GaussLegendreRule.Integrate(
+            t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+            0,                 // 积分下限
+            S1.f32_Ts,           // 积分上限
+            32                 // 高斯-勒让德积分的节点数（越大精度越高）
+            );
+            return S1.f32_fs * Inte_iMosBst;
+        }
+
         private void DrawChart(int chartIndex)
         {
             chart1.Series.Clear();
@@ -588,6 +724,21 @@ namespace LossCalculate1
                     break;
                 case 3: 
                     DrawChart4(series);
+                    break;
+                case 4:
+                    DrawChart5(series);
+                    break;
+                case 5:
+                    DrawChart6(series);
+                    break;
+                case 6:
+                    DrawChart7(series);
+                    break;
+                case 7:
+                    DrawChart8(series);
+                    break;
+                case 8:
+                    DrawChart9(series);
                     break;
             }
             chart1.Series.Add(series); //Tricks is in 'Series clear & add', if don't do this, data will not be reload.
@@ -640,6 +791,59 @@ namespace LossCalculate1
                 series.Points.AddXY(Ilx, Lpv);
             }
         }
+        private void DrawChart5(Series series)
+        {
+            for (float vin = 0; vin <= 1000; vin += 2)
+            {
+                float D_Iin = Cal_Delta_Iin(vin, Cal_Vo_BST(vin),S1.Po.f32_All, S2.L.f32_Turns); 
+                series.Points.AddXY(vin, D_Iin);
+            }
+        }
+        private void DrawChart6(Series series)
+        {
+            for (float vin = 0; vin <= 1000; vin += 2)
+            {
+                float D_Iin = Cal_IinL(vin, Cal_Vo_BST(vin), S1.Po.f32_All, S2.L.f32_Turns); 
+                series.Points.AddXY(vin, D_Iin);
+            }
+        }
+        private void DrawChart7(Series series)
+        {
+            for (float vin = 0; vin <= 1000; vin += 2)
+            {
+                float D_Iin = Cal_IinH(vin, Cal_Vo_BST(vin), S1.Po.f32_All, S2.L.f32_Turns); 
+                series.Points.AddXY(vin, D_Iin);
+            }
+        }
+        private void DrawChart8(Series series)
+        {
+            for (float vin = 0; vin <= 1000; vin += 2)
+            {
+                float D_Iin = Cal_dI2_in(vin, Cal_Vo_BST(vin), S1.Po.f32_All, S2.L.f32_Turns); 
+                series.Points.AddXY(vin, D_Iin);
+            }
+        }
+        private async void DrawChart9(Series series) //private void DrawChart9(Series series)
+        {
+            //未完全准备好数据就切换至图9会导致程序卡死，尚未完全解决该问题
+
+            // 使用异步方法来处理计算部分，避免阻塞 UI 线程
+            await Task.Run(() =>
+            {
+                float tStep = S1.f32_Ts / 1000;
+                for (float t = 0; t <= 2 * S1.f32_Ts; t += tStep)
+                {
+                    float L_Pv = Cal_L_Pv(t, S1.Vpv.f32_Normal, Cal_Vo_BST(S1.Vpv.f32_Normal), S1.Po.f32_All, S2.L.f32_Turns);
+
+                    // 使用 Invoke 来确保线程安全地更新图表
+                    this.Invoke((Action)(() =>
+                    {
+                        series.Points.AddXY(t, L_Pv);
+                    }));
+                }
+            });
+        }
+
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             string currentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
