@@ -289,7 +289,7 @@
             // 
             this.label9.AutoSize = true;
             this.label9.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label9.Location = new System.Drawing.Point(31, 328);
+            this.label9.Location = new System.Drawing.Point(31, 324);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(150, 36);
             this.label9.TabIndex = 2;
@@ -309,9 +309,9 @@
             // 
             this.label10.AutoSize = true;
             this.label10.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label10.Location = new System.Drawing.Point(196, 328);
+            this.label10.Location = new System.Drawing.Point(196, 324);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(147, 58);
+            this.label10.Size = new System.Drawing.Size(92, 36);
             this.label10.TabIndex = 2;
             this.label10.Text = "Po_all";
             this.label10.Click += new System.EventHandler(this.label1_Click);
@@ -329,7 +329,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label11.Location = new System.Drawing.Point(375, 328);
+            this.label11.Location = new System.Drawing.Point(375, 324);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(83, 36);
             this.label11.TabIndex = 2;
