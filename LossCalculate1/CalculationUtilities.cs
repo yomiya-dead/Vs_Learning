@@ -300,7 +300,7 @@ namespace LossCalculate1
                     t => (double)Cal_L_Pv((float)t, V_in, V_out, P_out, N_L) * Cal_L_Pv((float)t, V_in, V_out, P_out, N_L),  // 被积函数
                     0,                 // 积分下限
                     S1.f32_Ts,           // 积分上限
-                    32                 // 高斯-勒让德积分的节点数（越大精度越高）
+                    128                 // 高斯-勒让德积分的节点数（越大精度越高）
                     );
             return SQRT(S1.f32_fs * Inte_i_L_Pv);
         }
@@ -310,7 +310,7 @@ namespace LossCalculate1
                     t => (double)Cal_L_Pv((float)t, V_in, V_out, P_out, N_L),  // 被积函数
                     0,                 // 积分下限
                     S1.f32_Ts,           // 积分上限
-                    32                 // 高斯-勒让德积分的节点数（越大精度越高）
+                    128                 // 高斯-勒让德积分的节点数（越大精度越高）
                     );
             return S1.f32_fs * Inte_i_L_Pv;
         }
@@ -321,7 +321,7 @@ namespace LossCalculate1
 
             if (V_in < V_out)
             {
-                if ((t % S1.f32_Ts) < (D_boost / S1.f32_fs))
+                if ((t % S1.f32_Ts) <= (D_boost / S1.f32_fs))
                 {
                     return iLpv;
                 }
@@ -394,7 +394,7 @@ namespace LossCalculate1
                 t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
                 0,                 // 积分下限
                 Zero_CrossTime,           // 积分上限
-                32                 // 高斯-勒让德积分的节点数（越大精度越高）
+                128                 // 高斯-勒让德积分的节点数（越大精度越高）
                 );
                 return S1.f32_fs * Inte_iMosBst;
             }
@@ -411,10 +411,10 @@ namespace LossCalculate1
             if (S1.i16_SR == 1)
             {
                 float Inte_iMosBst_1 = (float)GaussLegendreRule.Integrate(
-                t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L) * Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
-                0,                 // 积分下限
+                t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L) * (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+                0,                   // 积分下限
                 S1.f32_Ts,           // 积分上限
-                32                 // 高斯-勒让德积分的节点数（越大精度越高）
+                128                  // 高斯-勒让德积分的节点数（越大精度越高）
                 );
                 return SQRT(S1.f32_fs * Inte_iMosBst_1);
             }
@@ -423,8 +423,8 @@ namespace LossCalculate1
                 float Inte_iMosBst_2 = (float)GaussLegendreRule.Integrate(
                 t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L) * Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
                 Zero_CrossTime,             // 积分下限
-                D_boost * S1.f32_Ts,        // 积分上限
-                32                          // 高斯-勒让德积分的节点数（越大精度越高）
+                D_boost / S1.f32_fs,        // 积分上限
+                128                         // 高斯-勒让德积分的节点数（越大精度越高）
                 );
                 return SQRT(S1.f32_fs * Inte_iMosBst_2);
             }
@@ -439,9 +439,42 @@ namespace LossCalculate1
             t => (double)Cal_I_MosBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
             0,                 // 积分下限
             S1.f32_Ts,           // 积分上限
-            32                 // 高斯-勒让德积分的节点数（越大精度越高）
+            128                 // 高斯-勒让德积分的节点数（越大精度越高）
             );
             return S1.f32_fs * Inte_iMosBst;
+        }
+        static public float Cal_Irms_BstDiode(float V_in, float V_out, float P_out, float N_L)
+        {
+            float Inte_iDiodeBst2 = (float)GaussLegendreRule.Integrate(
+            t => (double)Cal_I_DiodeBst((float)t, V_in, V_out, P_out, N_L) * (double)Cal_I_DiodeBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+            0,                   // 积分下限
+            S1.f32_Ts,           // 积分上限
+            128                  // 高斯-勒让德积分的节点数（越大精度越高）
+            );
+            return SQRT(S1.f32_fs * Inte_iDiodeBst2);
+        }
+        static public float Cal_Iavg_BstDiode(float V_in, float V_out, float P_out, float N_L)
+        {
+            float Inte_iDiodeBst = (float)GaussLegendreRule.Integrate(
+            t => (double)Cal_I_DiodeBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+            0,                 // 积分下限
+            S1.f32_Ts,           // 积分上限
+            128                 // 高斯-勒让德积分的节点数（越大精度越高）
+            );
+            return S1.f32_fs * Inte_iDiodeBst;
+        }
+        static public float Cal_Iavg_BstDiode_Ontime(float V_in, float V_out, float P_out, float N_L)
+        {
+            float D_boost = Cal_D_boost(V_in, V_out, P_out, N_L);
+            float Dp_boost = Cal_Dp_boost(V_in, V_out, P_out, N_L);
+
+            float Inte_iDiodeBst = (float)GaussLegendreRule.Integrate(
+            t => (double)Cal_I_DiodeBst((float)t, V_in, V_out, P_out, N_L),  // 被积函数
+            D_boost / S1.f32_fs,                        // 积分下限
+            (D_boost + Dp_boost) / S1.f32_fs,           // 积分上限
+            128                                         // 高斯-勒让德积分的节点数（越大精度越高）
+            );
+            return S1.f32_fs / Dp_boost * Inte_iDiodeBst;
         }
     }
 }

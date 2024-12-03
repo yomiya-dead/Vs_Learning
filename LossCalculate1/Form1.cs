@@ -170,6 +170,7 @@ namespace LossCalculate1
             comboBox1.Items.Add("I_in_H");
             comboBox1.Items.Add("dl1_in");
             comboBox1.Items.Add("L_Pv");
+            comboBox1.Items.Add("I_MosBst");
             comboBox1.SelectedIndex = 0;
             comboBox1.SelectedIndexChanged += ComboBox1_SelectedIndexChanged;
         }
@@ -184,7 +185,8 @@ namespace LossCalculate1
             InitializeInductorCapacitorEMI();
             DrawChart(comboBox1.SelectedIndex);
 
-            float sum = CalculationUtilities.Cal_I_avg(S1.Vpv.f32_Normal, CalculationUtilities.Cal_Vo_BST(S1.Vpv.f32_Normal), S1.Po.f32_All, S2.L.f32_Turns);
+            //float sum = CalculationUtilities.Cal_Irms_BstMos(220, 750, 0.01f * S1.Po.f32_Max, S2.L.f32_Turns);
+            float sum = CalculationUtilities.Cal_Irms_BstMos(600, 750, S1.Po.f32_Max, S2.L.f32_Turns); //数据不对，有bug
             Results.Text = sum.ToString();
         }
         private void button2_Click(object sender, EventArgs e)
@@ -303,6 +305,9 @@ namespace LossCalculate1
                 case 8:
                     DrawChart9(series);
                     break;
+                case 9:
+                    DrawChart10(series);
+                    break;
             }
             chart1.Series.Add(series); //Tricks is in 'Series clear & add', if don't do this, data will not be reload.
             //chart1.ResetAutoValues();  // 重置轴的自动范围
@@ -396,7 +401,7 @@ namespace LossCalculate1
                 float tStep = S1.f32_Ts / 1000;
                 for (float t = 0; t <= 2 * S1.f32_Ts; t += tStep)
                 {
-                    float L_Pv = CalculationUtilities.Cal_L_Pv(t, S1.Vpv.f32_Normal, CalculationUtilities.Cal_Vo_BST(S1.Vpv.f32_Normal), S1.Po.f32_All, S2.L.f32_Turns);
+                    float L_Pv = CalculationUtilities.Cal_L_Pv(t, 220, 750, 0.01f * S1.Po.f32_All, S2.L.f32_Turns);
 
                     // 使用 Invoke 来确保线程安全地更新图表
                     this.Invoke((Action)(() =>
@@ -406,7 +411,16 @@ namespace LossCalculate1
                 }
             });
         }
+        private void DrawChart10(Series series)
+        {
+            float tStep = S1.f32_Ts / 1000;
 
+            for (float t = 0; t <= 2 * S1.f32_Ts; t += tStep)
+            {
+                float L_Pv = CalculationUtilities.Cal_I_MosBst(t, 220, 750, 0.01f * S1.Po.f32_All, S2.L.f32_Turns);
+                series.Points.AddXY(t, L_Pv);
+            }
+        }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             string currentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
@@ -436,7 +450,7 @@ namespace LossCalculate1
             int result = 0;
             if (!string.IsNullOrEmpty(text) && !int.TryParse(text, out result))
             {
-                result = 1; // 如果转换失败，返1
+                result = 0; // 如果转换失败，返0
             }
             return result;
         }
